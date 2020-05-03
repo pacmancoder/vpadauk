@@ -1,0 +1,9 @@
+[package]
+name = "vpadauk"
+version = "0.1.0"
+authors = ["Vladislav Nikonov <mail@pacmancoder.xyz>"]
+edition = "2018"
+
+[dependencies]
+failure = { version = "0.1.8", features = ["derive"] }
+log = "0.4.8"
