@@ -27,5 +27,6 @@ pub type Pdk13Result<T> = Result<T, Pdk13Error>;
 pub type Word = u16;
 pub type Byte = u8;
 pub type IoAddr = u8;
-pub type RamAddr = u16;
+pub type NearRamAddr = u8;
+pub type FarRamAddr = u16;
 pub type RomAddr = u16;
