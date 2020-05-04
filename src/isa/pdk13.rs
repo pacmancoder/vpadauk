@@ -3,6 +3,7 @@ mod ir;
 mod translation;
 mod limit;
 mod pdk_core;
+mod ops;
 
 use core::{
     ops::Deref,
