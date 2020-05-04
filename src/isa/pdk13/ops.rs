@@ -11,7 +11,6 @@ use super::{
     }
 };
 
-
 // Overflow and aux carry flags calculation tables (from z80 emulators fuse/rustzx)
 // https://github.com/pacmancoder/rustzx/blob/master/src/z80/tables/mod.rs
 
@@ -27,27 +26,26 @@ const AUX_CARRY_SUB_TABLE: [u8; 8] = [
 const OVERFLOW_ADD_TABLE: [u8; 8] = [0, 0, 0, FLAG_OVERFLOW_MASK, FLAG_OVERFLOW_MASK, 0, 0, 0];
 const OVERFLOW_SUB_TABLE: [u8; 8] = [0, FLAG_OVERFLOW_MASK, 0, 0, 0, 0, FLAG_OVERFLOW_MASK, 0];
 
+pub type BinaryOperation = fn(Byte, Byte, Byte) -> (Byte, Byte);
+pub type UnaryOperation = fn(Byte, Byte) -> (Byte, Byte);
+
 fn make_flags_lookup_index(a: u8, b: u8, result: u8) -> usize {
     return (((a & 0x88) >> 3) | ((b & 0x88) >> 2) | ((result & 0x88) >> 1)) as usize;
 }
 
-#[inline(always)]
 pub fn add(acc: Byte, value: Byte, old_flags: Byte) -> (Byte, Byte) {
     add_impl(acc, value, old_flags, 0)
 }
 
-#[inline(always)]
 pub fn addc(acc: Byte, value: Byte, old_flags: Byte) -> (Byte, Byte) {
     let carry = (old_flags & FLAG_CARRY_MASK) >> FLAG_CARRY_OFFSET;
     add_impl(acc, value, old_flags, carry)
 }
 
-#[inline(always)]
 pub fn sub(acc: Byte, value: Byte, old_flags: Byte) -> (Byte, Byte) {
     sub_impl(acc, value, old_flags, 0)
 }
 
-#[inline(always)]
 pub fn subc(acc: Byte, value: Byte, old_flags: Byte) -> (Byte, Byte) {
     let carry = (old_flags & FLAG_CARRY_MASK) >> FLAG_CARRY_OFFSET;
     sub_impl(acc, value, old_flags, carry)
@@ -81,6 +79,15 @@ pub fn xor(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
         flags &= !FLAG_ZERO_MASK
     }
     (acc, flags)
+}
+
+pub fn mov(_: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
+    if value == 0 {
+        flags |= FLAG_ZERO_MASK
+    } else {
+        flags &= !FLAG_ZERO_MASK
+    }
+    (value, flags)
 }
 
 pub fn not(mut acc: Byte, mut flags: Byte) -> (Byte, Byte) {
@@ -141,7 +148,6 @@ pub fn slc(acc: Byte, mut flags: Byte) -> (Byte, Byte) {
     ((acc << 1) | tail, flags)
 }
 
-#[inline(always)]
 fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte) {
     let mut flags = old_flags & !ARITH_FLAGS_MASK;
     let result = (acc as Word).wrapping_add(value as Word).wrapping_add(carry as Word);
@@ -158,7 +164,6 @@ fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte
     (result8, flags)
 }
 
-#[inline(always)]
 fn sub_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte) {
     let mut flags = old_flags & !ARITH_FLAGS_MASK;
     let result = (acc as Word).wrapping_sub(value as Word).wrapping_add(carry as Word);
