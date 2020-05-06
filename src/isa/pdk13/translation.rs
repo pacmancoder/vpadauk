@@ -1,64 +1,64 @@
 use super::{
-    Word, Pdk13Result, Pdk13Error,
     ir::{IrSlot, IrSlotBuilder},
+    limit,
     opcode_stamp::OpcodeStamp,
-    limit
+    Pdk13Error, Pdk13Result, Word,
 };
 
 pub fn generate_ir(instruction: Word) -> Pdk13Result<IrSlot> {
     if !limit::is_valid_opcode(instruction) {
-        return Err(Pdk13Error::TooBigWord(instruction))
+        return Err(Pdk13Error::TooBigWord(instruction));
     }
 
-    const MISC_GROUP_MASK: u16 =  0b111_1111111000000;
+    const MISC_GROUP_MASK: u16 = 0b111_1111111000000;
     const MISC_GROUP_STAMP: u16 = 0b000_0000000000000;
 
-    const XOR_IO_GROUP_MASK: u16 =  0b111_1111111000000;
+    const XOR_IO_GROUP_MASK: u16 = 0b111_1111111000000;
     const XOR_IO_GROUP_STAMP: u16 = 0b000_0000001000000;
     const XOR_IO_OPCODE_MASK: u16 = 0b111_1111111100000;
 
-    const MOV_IO_GROUP_MASK: u16 =  0b111_1111111000000;
+    const MOV_IO_GROUP_MASK: u16 = 0b111_1111111000000;
     const MOV_IO_GROUP_STAMP: u16 = 0b000_0000010000000;
     const MOV_IO_OPCODE_MASK: u16 = 0b111_1111111100000;
 
-    const MEM16_GROUP_MASK: u16 =  0b111_1111111000000;
+    const MEM16_GROUP_MASK: u16 = 0b111_1111111000000;
     const MEM16_GROUP_STAMP: u16 = 0b000_0000011000000;
     const MEM16_OPCODE_MASK: u16 = 0b111_1111111100001;
 
-    const RET_CONST_GROUP_MASK: u16 =  0b111_1111100000000;
+    const RET_CONST_GROUP_MASK: u16 = 0b111_1111100000000;
     const RET_CONST_GROUP_STAMP: u16 = 0b000_0000100000000;
     const RET_CONST_OPCODE_MASK: u16 = 0b111_1111100000000;
 
-    const MEM_BIT_OPS_GROUP_MASK: u16 =  0b111_1111000000000;
+    const MEM_BIT_OPS_GROUP_MASK: u16 = 0b111_1111000000000;
     const MEM_BIT_OPS_GROUP_STAMP: u16 = 0b000_0001000000000;
     const MEM_BIT_OPS_OPCODE_MASK: u16 = 0b111_1111100010000;
 
-    const MEM_AND_ACC_GROUP_MASK: u16 =  0b111_1110000000000;
+    const MEM_AND_ACC_GROUP_MASK: u16 = 0b111_1110000000000;
     const MEM_AND_ACC_GROUP_STAMP: u16 = 0b000_0010000000000;
     const MEM_AND_ACC_OPCODE_MASK: u16 = 0b111_1111111000000;
 
-    const MEM_GROUP_MASK: u16 =  0b111_1110000000000;
+    const MEM_GROUP_MASK: u16 = 0b111_1110000000000;
     const MEM_GROUP_STAMP: u16 = 0b000_0100000000000;
     const MEM_OPCODE_MASK: u16 = 0b111_1111111000000;
 
-    const IO_BIT_OPS_GROUP_MASK: u16 =  0b111_1110000000000;
+    const IO_BIT_OPS_GROUP_MASK: u16 = 0b111_1110000000000;
     const IO_BIT_OPS_GROUP_STAMP: u16 = 0b000_0110000000000;
     const IO_BIT_OPS_OPCODE_MASK: u16 = 0b111_1111100000000;
 
-    const ACC_CONST_GROUP_MASK: u16 =  0b111_1100000000000;
+    const ACC_CONST_GROUP_MASK: u16 = 0b111_1100000000000;
     const ACC_CONST_GROUP_STAMP: u16 = 0b000_1000000000000;
-    const ACC_CONST_OPCODE_MASK: u16 =  0b111_1111100000000;
+    const ACC_CONST_OPCODE_MASK: u16 = 0b111_1111100000000;
 
-    const JUMP_GROUP_MASK: u16 =  0b111_1100000000000;
+    const JUMP_GROUP_MASK: u16 = 0b111_1100000000000;
     const JUMP_GROUP_STAMP: u16 = 0b000_1100000000000;
-    const JUMP_OPCODE_MASK: u16 =  0b111_1110000000000;
+    const JUMP_OPCODE_MASK: u16 = 0b111_1110000000000;
 
     let mut ir_builder = IrSlotBuilder::new();
     let opcode_stamp;
 
     if instruction & MISC_GROUP_MASK == MISC_GROUP_STAMP {
         opcode_stamp = OpcodeStamp::from_primitive(instruction);
-        // No operands
+    // No operands
     } else if instruction & XOR_IO_GROUP_MASK == XOR_IO_GROUP_STAMP {
         opcode_stamp = OpcodeStamp::from_primitive(instruction & XOR_IO_OPCODE_MASK);
         // Operand 1: 5 bit io address at offset 0

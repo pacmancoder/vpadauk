@@ -1,8 +1,4 @@
-use super::{
-    Byte,
-    Word,
-    regs::*,
-};
+use super::{regs::*, Byte, Word};
 
 // Overflow and aux carry flags calculation tables (from z80 emulators fuse/rustzx)
 // https://github.com/pacmancoder/rustzx/blob/master/src/z80/tables/mod.rs
@@ -44,7 +40,7 @@ pub fn subc(acc: Byte, value: Byte, old_flags: Byte) -> (Byte, Byte) {
     sub_impl(acc, value, old_flags, carry)
 }
 
-pub fn and(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
+pub fn and(mut acc: Byte, value: Byte, mut flags: Byte) -> (Byte, Byte) {
     acc &= value;
     if acc == 0 {
         flags |= FLAG_ZERO_MASK
@@ -54,7 +50,7 @@ pub fn and(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
     (acc, flags)
 }
 
-pub fn or(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
+pub fn or(mut acc: Byte, value: Byte, mut flags: Byte) -> (Byte, Byte) {
     acc |= value;
     if acc == 0 {
         flags |= FLAG_ZERO_MASK
@@ -64,7 +60,7 @@ pub fn or(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
     (acc, flags)
 }
 
-pub fn xor(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
+pub fn xor(mut acc: Byte, value: Byte, mut flags: Byte) -> (Byte, Byte) {
     acc ^= value;
     if acc == 0 {
         flags |= FLAG_ZERO_MASK
@@ -74,7 +70,7 @@ pub fn xor(mut acc: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
     (acc, flags)
 }
 
-pub fn mov(_: Byte, value: Byte, mut flags: Byte)  -> (Byte, Byte) {
+pub fn mov(_: Byte, value: Byte, mut flags: Byte) -> (Byte, Byte) {
     if value == 0 {
         flags |= FLAG_ZERO_MASK
     } else {
@@ -143,7 +139,9 @@ pub fn slc(acc: Byte, mut flags: Byte) -> (Byte, Byte) {
 
 fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte) {
     let mut flags = old_flags & !FLAGS_ARITH_MASK;
-    let result = (acc as Word).wrapping_add(value as Word).wrapping_add(carry as Word);
+    let result = (acc as Word)
+        .wrapping_add(value as Word)
+        .wrapping_add(carry as Word);
     let result8 = result as Byte;
     let flags_lookup_index = make_flags_lookup_index(acc, value, result8);
     if result > 0xFF {
@@ -159,7 +157,9 @@ fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte
 
 fn sub_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte) {
     let mut flags = old_flags & !FLAGS_ARITH_MASK;
-    let result = (acc as Word).wrapping_sub(value as Word).wrapping_add(carry as Word);
+    let result = (acc as Word)
+        .wrapping_sub(value as Word)
+        .wrapping_add(carry as Word);
     let result8 = result as Byte;
     let flags_lookup_index = make_flags_lookup_index(acc, value, result8);
     if result > 0xFF {
@@ -172,4 +172,3 @@ fn sub_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte
     flags |= AUX_CARRY_SUB_TABLE[flags_lookup_index];
     (result8, flags)
 }
-

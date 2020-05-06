@@ -1,11 +1,10 @@
 use super::{
-    IoAddr, Byte, RamAddr, RomAddr, Word,
-    ir::{IrSlot, IrOpcode},
-    ops,
     bus::{Bus, BusExt},
+    ir::{IrOpcode, IrSlot},
+    ops,
     regs::*,
+    Byte, IoAddr, RamAddr, RomAddr, Word,
 };
-
 
 #[derive(Copy, Clone)]
 enum PdkCoreState {
@@ -91,7 +90,9 @@ impl<B: Bus> PdkCore<B> {
             IrOpcode::Movioa => self.bus.write_io(ir.operand8(), self.acc),
             IrOpcode::Movaio => self.alu_acc_binary(ops::mov, self.bus.read_io(ir.operand8())),
             IrOpcode::Stt16 => self.bus.write_tim16(self.bus.read_ram_word(ir.operand8())),
-            IrOpcode::Ldt16 => self.bus.write_ram_word(ir.operand8(), self.bus.read_tim16()),
+            IrOpcode::Ldt16 => self
+                .bus
+                .write_ram_word(ir.operand8(), self.bus.read_tim16()),
             IrOpcode::Idxmma => self.indirect_store_acc(ir.operand8()),
             IrOpcode::Idxmam => self.indirect_load_acc(ir.operand8()),
             IrOpcode::Retk => self.ret_immediate(ir.operand16() as u8),
@@ -143,7 +144,7 @@ impl<B: Bus> PdkCore<B> {
             IrOpcode::Movak => self.acc = ir.operand16() as u8,
             IrOpcode::Goto => self.goto(ir.operand16()),
             IrOpcode::Call => self.call(ir.operand16()),
-            _ => {},
+            _ => {}
         }
         self.pc = self.pc.wrapping_add(self.pc_increment);
         self.next_state
@@ -209,11 +210,13 @@ impl<B: Bus> PdkCore<B> {
     }
 
     fn set_bit_ram(&mut self, addr: u8, bit: u8) {
-        self.bus.write_ram(addr, self.bus.read_ram(addr) | (1 << bit));
+        self.bus
+            .write_ram(addr, self.bus.read_ram(addr) | (1 << bit));
     }
 
     fn clear_bit_ram(&mut self, addr: u8, bit: u8) {
-        self.bus.write_ram(addr, self.bus.read_ram(addr) & !(1 << bit));
+        self.bus
+            .write_ram(addr, self.bus.read_ram(addr) & !(1 << bit));
     }
 
     fn set_bit_io(&mut self, addr: u8, bit: u8) {
@@ -221,7 +224,8 @@ impl<B: Bus> PdkCore<B> {
     }
 
     fn clear_bit_io(&mut self, addr: u8, bit: u8) {
-        self.bus.write_io(addr, self.bus.read_io(addr) & !(1 << bit));
+        self.bus
+            .write_io(addr, self.bus.read_io(addr) & !(1 << bit));
     }
 
     fn skip_next_if_bit_set_io(&mut self, addr: u8, bit: u8) {
@@ -278,7 +282,8 @@ impl<B: Bus> PdkCore<B> {
     fn pop_af(&mut self) {
         let sp = self.bus.read_io(SP_IO_ADDR);
         self.acc = self.bus.read_ram(sp.wrapping_sub(1));
-        self.bus.write_io(FLAGS_IO_ADDR, self.bus.read_ram(sp.wrapping_sub(2)));
+        self.bus
+            .write_io(FLAGS_IO_ADDR, self.bus.read_ram(sp.wrapping_sub(2)));
         self.bus.write_io(SP_IO_ADDR, sp.wrapping_sub(2));
     }
 
@@ -294,15 +299,15 @@ impl<B: Bus> PdkCore<B> {
 
     fn load_rom_word_indirect_sp_hi(&mut self) {
         let sp = self.bus.read_io(SP_IO_ADDR);
-        let addr = self.bus.read_ram(sp) as u16 |
-            ((self.bus.read_ram(sp.wrapping_add(1)) as u16) << 8);
+        let addr =
+            self.bus.read_ram(sp) as u16 | ((self.bus.read_ram(sp.wrapping_add(1)) as u16) << 8);
         self.acc = (self.bus.read_rom(addr) >> 8) as u8
     }
 
     fn load_rom_word_indirect_sp_lo(&mut self) {
         let sp = self.bus.read_io(SP_IO_ADDR);
-        let addr = self.bus.read_ram(sp) as u16 |
-            ((self.bus.read_ram(sp.wrapping_add(1)) as u16) << 8);
+        let addr =
+            self.bus.read_ram(sp) as u16 | ((self.bus.read_ram(sp.wrapping_add(1)) as u16) << 8);
         self.acc = self.bus.read_rom(addr) as u8
     }
 
@@ -351,7 +356,8 @@ impl<B: Bus> PdkCore<B> {
     }
 
     fn indirect_store_acc(&mut self, addr: Byte) {
-        self.bus.write_ram(self.bus.read_ram_word(addr) as Byte, self.acc);
+        self.bus
+            .write_ram(self.bus.read_ram_word(addr) as Byte, self.acc);
         self.next_state = PdkCoreState::Skip;
     }
 
@@ -361,7 +367,7 @@ impl<B: Bus> PdkCore<B> {
     }
 
     fn skip_next_if_equal(&mut self, value: Byte) {
-        let (r, f) = ops::sub(self.acc, value, self.prev_flags);
+        let (_r, f) = ops::sub(self.acc, value, self.prev_flags);
         self.bus.write_io(FLAGS_IO_ADDR, f);
         if f & FLAG_ZERO_MASK != 0 {
             self.pc_increment = 2;

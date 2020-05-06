@@ -16,7 +16,9 @@ impl IrSlot {
 }
 
 impl Default for IrSlot {
-    fn default() -> Self { Self(0) }
+    fn default() -> Self {
+        Self(0)
+    }
 }
 
 pub struct IrSlotBuilder(u32);
@@ -28,7 +30,7 @@ impl IrSlotBuilder {
 
     pub fn opcode(&mut self, value: IrOpcode) -> &mut Self {
         self.0 &= 0x00FFFFFF;
-        self.0 |= ((value as u32) << 24);
+        self.0 |= (value as u32) << 24;
         self
     }
 

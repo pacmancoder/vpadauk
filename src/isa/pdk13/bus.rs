@@ -1,12 +1,4 @@
-use super::{
-    Byte,
-    Word,
-    RamAddr,
-    IoAddr,
-    RomAddr,
-    ir::IrSlot,
-};
-
+use super::{ir::IrSlot, Byte, IoAddr, RamAddr, RomAddr, Word};
 
 pub trait Bus {
     fn write_io(&mut self, addr: IoAddr, value: Byte);
@@ -27,13 +19,15 @@ pub trait Bus {
     fn wdt_reset(&mut self);
 }
 
-
 pub trait BusExt {
     fn read_ram_word(&self, addr: RamAddr) -> Word;
     fn write_ram_word(&mut self, addr: RamAddr, value: Word);
 }
 
-impl<T> BusExt for T where T: Bus {
+impl<T> BusExt for T
+where
+    T: Bus,
+{
     fn read_ram_word(&self, addr: RamAddr) -> Word {
         let lo = self.read_ram(addr) as Word;
         let hi = self.read_ram(addr.wrapping_add(1)) as Word;

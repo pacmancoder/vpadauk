@@ -1,10 +1,4 @@
-use crate::isa::pdk13::{
-    Pdk13Error,
-    ir::IrOpcode,
-    translation::{
-        generate_ir
-    },
-};
+use crate::isa::pdk13::{ir::IrOpcode, translation::generate_ir};
 
 #[test]
 fn too_big_opcode_produces_error() {
@@ -23,7 +17,6 @@ fn valid_opcode_nop() {
     assert_eq!(ir.opcode(), IrOpcode::Nop)
 }
 
-
 #[test]
 fn valid_misc_opcode_min() {
     let ir = generate_ir(0x0006).unwrap();
@@ -36,69 +29,67 @@ fn valid_misc_opcode_max() {
     assert_eq!(ir.opcode(), IrOpcode::Mul)
 }
 
-
 #[test]
 fn valid_xor_io_acc_opcode() {
     let ir = generate_ir(0x007A).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Xorioa);
-    assert_eq!(ir.operand8(),  0x1A)
+    assert_eq!(ir.operand8(), 0x1A)
 }
 
 #[test]
 fn valid_mov_io_opcode_min() {
     let ir = generate_ir(0x009A).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Movioa);
-    assert_eq!(ir.operand8(),  0x1A)
+    assert_eq!(ir.operand8(), 0x1A)
 }
-
 
 #[test]
 fn valid_mov_io_opcode_max() {
     let ir = generate_ir(0x00BA).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Movaio);
-    assert_eq!(ir.operand8(),  0x1A)
+    assert_eq!(ir.operand8(), 0x1A)
 }
 
 #[test]
 fn valid_stt16m_opcode() {
     let ir = generate_ir(0x00DA).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Stt16);
-    assert_eq!(ir.operand8(),  0x1A);
+    assert_eq!(ir.operand8(), 0x1A);
 }
 
 #[test]
 fn valid_ldt16_opcode() {
     let ir = generate_ir(0x00DB).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Ldt16);
-    assert_eq!(ir.operand8(),  0x1A);
+    assert_eq!(ir.operand8(), 0x1A);
 }
 
 #[test]
 fn valid_idxmma_opcode() {
     let ir = generate_ir(0x00FA).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Idxmma);
-    assert_eq!(ir.operand8(),  0x1A);
+    assert_eq!(ir.operand8(), 0x1A);
 }
 
 #[test]
 fn valid_idxmam_opcode() {
     let ir = generate_ir(0x00FB).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Idxmam);
-    assert_eq!(ir.operand8(),  0x1A);
+    assert_eq!(ir.operand8(), 0x1A);
 }
 
 #[test]
 fn valid_retk_min_opcode() {
     let ir = generate_ir(0x0100).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Retk);
-    assert_eq!(ir.operand16(),  0x00);
+    assert_eq!(ir.operand16(), 0x00);
 }
 
 #[test]
 fn valid_retk_max_opcode() {
     let ir = generate_ir(0x01FF).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Retk);
-    assert_eq!(ir.operand16(),  0xFF);
+    assert_eq!(ir.operand16(), 0xFF);
 }
 
 #[test]
@@ -133,33 +124,32 @@ fn valid_set1m_opcode() {
     assert_eq!(ir.operand16(), 0x05);
 }
 
-
 #[test]
 fn valid_mem_and_acc_min_opcode() {
     let ir = generate_ir(0x043A).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Addma);
-    assert_eq!(ir.operand8(),  0x3A);
+    assert_eq!(ir.operand8(), 0x3A);
 }
 
 #[test]
 fn valid_mem_and_acc_max_opcode() {
     let ir = generate_ir(0x07FA).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Movam);
-    assert_eq!(ir.operand8(),  0x3A);
+    assert_eq!(ir.operand8(), 0x3A);
 }
 
 #[test]
 fn valid_mem_min_opcode() {
     let ir = generate_ir(0x083A).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Addcm);
-    assert_eq!(ir.operand8(),  0x3A);
+    assert_eq!(ir.operand8(), 0x3A);
 }
 
 #[test]
 fn valid_mem_max_opcode() {
     let ir = generate_ir(0x0BBA).unwrap();
     assert_eq!(ir.opcode(), IrOpcode::Ceqsnam);
-    assert_eq!(ir.operand8(),  0x3A);
+    assert_eq!(ir.operand8(), 0x3A);
 }
 
 #[test]
