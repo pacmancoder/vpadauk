@@ -5,7 +5,7 @@ use super::{
     limit
 };
 
-pub fn pdk13_instruction_to_ir_slot(instruction: Word) -> Pdk13Result<IrSlot> {
+pub fn generate_ir(instruction: Word) -> Pdk13Result<IrSlot> {
     if !limit::is_valid_opcode(instruction) {
         return Err(Pdk13Error::TooBigWord(instruction))
     }

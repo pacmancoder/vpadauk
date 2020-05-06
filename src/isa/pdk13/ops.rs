@@ -1,14 +1,7 @@
 use super::{
     Byte,
     Word,
-    pdk_core::{
-        ARITH_FLAGS_MASK,
-        FLAG_ZERO_MASK,
-        FLAG_AUX_CARRY_MASK,
-        FLAG_CARRY_MASK,
-        FLAG_CARRY_OFFSET,
-        FLAG_OVERFLOW_MASK,
-    }
+    regs::*,
 };
 
 // Overflow and aux carry flags calculation tables (from z80 emulators fuse/rustzx)
@@ -149,7 +142,7 @@ pub fn slc(acc: Byte, mut flags: Byte) -> (Byte, Byte) {
 }
 
 fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte) {
-    let mut flags = old_flags & !ARITH_FLAGS_MASK;
+    let mut flags = old_flags & !FLAGS_ARITH_MASK;
     let result = (acc as Word).wrapping_add(value as Word).wrapping_add(carry as Word);
     let result8 = result as Byte;
     let flags_lookup_index = make_flags_lookup_index(acc, value, result8);
@@ -165,7 +158,7 @@ fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte
 }
 
 fn sub_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte) {
-    let mut flags = old_flags & !ARITH_FLAGS_MASK;
+    let mut flags = old_flags & !FLAGS_ARITH_MASK;
     let result = (acc as Word).wrapping_sub(value as Word).wrapping_add(carry as Word);
     let result8 = result as Byte;
     let flags_lookup_index = make_flags_lookup_index(acc, value, result8);

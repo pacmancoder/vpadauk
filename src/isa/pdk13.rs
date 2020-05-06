@@ -4,6 +4,8 @@ mod translation;
 mod limit;
 mod pdk_core;
 mod ops;
+mod bus;
+mod regs;
 
 #[cfg(test)]
 mod test;
@@ -32,5 +34,4 @@ pub type Word = u16;
 pub type Byte = u8;
 pub type IoAddr = u8;
 pub type RamAddr = u8;
-pub type FarRamAddr = u16;
 pub type RomAddr = u16;

@@ -1,64 +1,11 @@
 use super::{
-    IoAddr, Byte, RamAddr, FarRamAddr, RomAddr, Word,
+    IoAddr, Byte, RamAddr, RomAddr, Word,
     ir::{IrSlot, IrOpcode},
     ops,
+    bus::{Bus, BusExt},
+    regs::*,
 };
-use crate::isa::pdk13::ops::add;
 
-const IO_SPACE_SIZE: usize = 32;
-
-const FLAGS_IO_ADDR: IoAddr = 0x00;
-const SP_IO_ADDR: IoAddr = 0x02;
-const INTEN_IO_ADDR: IoAddr = 0x04;
-
-pub const FLAG_ZERO_MASK: Byte = 0x01;
-pub const FLAG_ZERO_OFFSET: Byte = 0x00;
-pub const FLAG_CARRY_MASK: Byte = 0x02;
-pub const FLAG_CARRY_OFFSET: Byte = 0x01;
-pub const FLAG_AUX_CARRY_MASK: Byte = 0x04;
-pub const FLAG_AUX_CARRY_OFFSET: Byte = 0x02;
-pub const FLAG_OVERFLOW_MASK: Byte = 0x08;
-pub const FLAG_OVERFLOW_OFFSET: Byte = 0x03;
-pub const ARITH_FLAGS_MASK: Byte =
-    FLAG_ZERO_MASK | FLAG_CARRY_MASK | FLAG_AUX_CARRY_MASK | FLAG_OVERFLOW_MASK;
-
-
-pub trait Bus {
-    fn write_io(&mut self, addr: IoAddr, value: Byte);
-    fn read_io(&self, addr: IoAddr) -> Byte;
-
-    fn write_ram(&mut self, addr: RamAddr, value: Byte);
-    fn read_ram(&self, addr: RamAddr) -> Byte;
-
-    fn read_rom(&self, addr: RomAddr) -> Word;
-    fn read_ir(&self, addr: RomAddr) -> IrSlot;
-
-    fn write_tim16(&mut self, value: Word);
-    fn read_tim16(&self) -> Word;
-
-    fn reset(&mut self);
-    fn stop_exe(&mut self);
-    fn stop_sys(&mut self);
-    fn wdt_reset(&mut self);
-}
-
-trait BusExt {
-    fn read_ram_word(&self, addr: RamAddr) -> Word;
-    fn write_ram_word(&mut self, addr: RamAddr, value: Word);
-}
-
-impl<T> BusExt for T where T: Bus {
-    fn read_ram_word(&self, addr: RamAddr) -> Word {
-        let lo = self.read_ram(addr) as Word;
-        let hi = self.read_ram(addr.wrapping_add(1)) as Word;
-        lo | (hi << 8)
-    }
-
-    fn write_ram_word(&mut self, addr: RamAddr, value: Word) {
-        self.write_ram(addr, value as u8);
-        self.write_ram(addr.wrapping_add(1), (value >> 8) as u8);
-    }
-}
 
 #[derive(Copy, Clone)]
 enum PdkCoreState {
@@ -198,7 +145,7 @@ impl<B: Bus> PdkCore<B> {
             IrOpcode::Call => self.call(ir.operand16()),
             _ => {},
         }
-        self.pc.wrapping_add(self.pc_increment);
+        self.pc = self.pc.wrapping_add(self.pc_increment);
         self.next_state
     }
 
@@ -316,7 +263,7 @@ impl<B: Bus> PdkCore<B> {
     }
 
     fn add_acc_to_pc(&mut self) {
-        self.pc.wrapping_add(self.acc as u16);
+        self.pc = self.pc.wrapping_add(self.acc as u16);
         self.pc_increment = 0;
         self.next_state = PdkCoreState::Skip;
     }

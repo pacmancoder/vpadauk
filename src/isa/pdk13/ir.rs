@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct IrSlot(u32);
 
 impl IrSlot {
@@ -12,6 +13,10 @@ impl IrSlot {
     pub fn operand16(&self) -> u16 {
         ((self.0 >> 0) & 0x0000FFFF) as u16
     }
+}
+
+impl Default for IrSlot {
+    fn default() -> Self { Self(0) }
 }
 
 pub struct IrSlotBuilder(u32);
