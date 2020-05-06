@@ -2,10 +2,9 @@ use crate::isa::pdk13::bus::Bus;
 use crate::isa::pdk13::ir::{IrOpcode, IrSlot, IrSlotBuilder};
 
 struct MockBus {
-    pub io: [u8; 0x20],      // 32 bytes io space
-    pub ram: [u8; 0x40],     // 64 bytes ram space
-    pub rom: [u16; 0x400],   // 1K word rom space
-    pub ir: [IrSlot; 0x400], // 1K word rom space
+    pub io: [u8; 0x20],       // 32 bytes io space
+    pub ram: [u8; 0x40],      // 64 bytes ram space
+    pub rom: [IrSlot; 0x400], // 1K word rom space
     pub tim16: u16,
     pub reset_active: bool,
     pub wdt_reset_active: bool,
@@ -18,8 +17,7 @@ impl MockBus {
         Self {
             io: [0; 0x20],
             ram: [0; 0x40],
-            rom: [0; 0x400],
-            ir: [IrSlot::default(); 0x400],
+            rom: [IrSlot::default(); 0x400],
             tim16: 0,
             reset_active: false,
             wdt_reset_active: false,
@@ -46,12 +44,8 @@ impl Bus for MockBus {
         self.ram[(addr & 0x3F) as usize]
     }
 
-    fn read_rom(&self, addr: u16) -> u16 {
+    fn read_rom(&self, addr: u16) -> IrSlot {
         self.rom[(addr & 0x3FF) as usize]
-    }
-
-    fn read_ir(&self, addr: u16) -> IrSlot {
-        self.ir[(addr & 0x3FF) as usize]
     }
 
     fn write_tim16(&mut self, value: u16) {

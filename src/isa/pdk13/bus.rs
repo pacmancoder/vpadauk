@@ -7,8 +7,7 @@ pub trait Bus {
     fn write_ram(&mut self, addr: RamAddr, value: Byte);
     fn read_ram(&self, addr: RamAddr) -> Byte;
 
-    fn read_rom(&self, addr: RomAddr) -> Word;
-    fn read_ir(&self, addr: RomAddr) -> IrSlot;
+    fn read_rom(&self, addr: RomAddr) -> IrSlot;
 
     fn write_tim16(&mut self, value: Word);
     fn read_tim16(&self) -> Word;

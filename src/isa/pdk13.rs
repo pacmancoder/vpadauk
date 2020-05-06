@@ -5,17 +5,11 @@ mod opcode_stamp;
 mod ops;
 mod pdk_core;
 mod regs;
-mod translation;
 
 #[cfg(test)]
 mod test;
 
-
-
 use failure::Fail;
-
-
-
 
 #[derive(Debug, Fail)]
 pub enum Pdk13Error {
