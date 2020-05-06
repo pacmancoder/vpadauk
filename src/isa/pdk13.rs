@@ -5,6 +5,9 @@ mod limit;
 mod pdk_core;
 mod ops;
 
+#[cfg(test)]
+mod test;
+
 use core::{
     ops::Deref,
     fmt::{Display, Formatter, Binary, LowerHex},
@@ -28,6 +31,6 @@ pub type Pdk13Result<T> = Result<T, Pdk13Error>;
 pub type Word = u16;
 pub type Byte = u8;
 pub type IoAddr = u8;
-pub type NearRamAddr = u8;
+pub type RamAddr = u8;
 pub type FarRamAddr = u16;
 pub type RomAddr = u16;

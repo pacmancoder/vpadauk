@@ -1,7 +1,7 @@
 use super::ir::IrOpcode;
 
-#[non_exhaustive]
 #[repr(u16)]
+#[non_exhaustive]
 pub enum OpcodeStamp {
     // Misc operations
     Nop = 0x0000,
@@ -187,6 +187,7 @@ impl OpcodeStamp {
             Self::Movak => IrOpcode::Movak,
             Self::Goto => IrOpcode::Goto,
             Self::Call => IrOpcode::Call,
+            _ => IrOpcode::Nop,
         }
     }
 }

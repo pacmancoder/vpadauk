@@ -1,5 +1,5 @@
 use super::{
-    IoAddr, Byte, NearRamAddr, FarRamAddr, RomAddr, Word,
+    IoAddr, Byte, RamAddr, FarRamAddr, RomAddr, Word,
     ir::{IrSlot, IrOpcode},
     ops,
 };
@@ -24,22 +24,11 @@ pub const ARITH_FLAGS_MASK: Byte =
 
 
 pub trait Bus {
-    fn write_acc(&mut self, addr: IoAddr, value: Byte);
-    fn read_acc(&self, addr: IoAddr) -> Byte;
-
     fn write_io(&mut self, addr: IoAddr, value: Byte);
     fn read_io(&self, addr: IoAddr) -> Byte;
 
-    fn write_ram(&mut self, addr: NearRamAddr, value: Byte) {
-        self.write_ram_far(addr as FarRamAddr, value);
-    }
-
-    fn read_ram(&self, addr: NearRamAddr) -> Byte {
-        self.read_ram_far(addr as FarRamAddr)
-    }
-
-    fn write_ram_far(&mut self, addr: FarRamAddr, value: Byte);
-    fn read_ram_far(&self, addr: FarRamAddr) -> Byte;
+    fn write_ram(&mut self, addr: RamAddr, value: Byte);
+    fn read_ram(&self, addr: RamAddr) -> Byte;
 
     fn read_rom(&self, addr: RomAddr) -> Word;
     fn read_ir(&self, addr: RomAddr) -> IrSlot;
@@ -54,18 +43,18 @@ pub trait Bus {
 }
 
 trait BusExt {
-    fn read_ram_word(&self, addr: NearRamAddr) -> Word;
-    fn write_ram_word(&mut self, addr: NearRamAddr, value: Word);
+    fn read_ram_word(&self, addr: RamAddr) -> Word;
+    fn write_ram_word(&mut self, addr: RamAddr, value: Word);
 }
 
 impl<T> BusExt for T where T: Bus {
-    fn read_ram_word(&self, addr: NearRamAddr) -> Word {
+    fn read_ram_word(&self, addr: RamAddr) -> Word {
         let lo = self.read_ram(addr) as Word;
         let hi = self.read_ram(addr.wrapping_add(1)) as Word;
         lo | (hi << 8)
     }
 
-    fn write_ram_word(&mut self, addr: NearRamAddr, value: Word) {
+    fn write_ram_word(&mut self, addr: RamAddr, value: Word) {
         self.write_ram(addr, value as u8);
         self.write_ram(addr.wrapping_add(1), (value >> 8) as u8);
     }

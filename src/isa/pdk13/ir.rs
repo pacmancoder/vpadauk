@@ -29,13 +29,13 @@ impl IrSlotBuilder {
 
     pub fn operand8(&mut self, value: u8) -> &mut Self {
         self.0 &= 0xFF00FFFF;
-        self.0 |= (value << 16) as u32;
+        self.0 |= (value as u32) << 16;
         self
     }
 
     pub fn operand16(&mut self, value: u16) -> &mut Self {
         self.0 &= 0xFFFF0000;
-        self.0 |= (value << 0) as u32;
+        self.0 |= value as u32;
         self
     }
 
@@ -46,6 +46,7 @@ impl IrSlotBuilder {
 
 #[non_exhaustive]
 #[repr(u8)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum IrOpcode {
     Nop,
     Ldsptl,
