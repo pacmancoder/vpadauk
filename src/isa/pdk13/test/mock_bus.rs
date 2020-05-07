@@ -1,7 +1,7 @@
 use crate::isa::pdk13::bus::Bus;
 use crate::isa::pdk13::ir::{IrOpcode, IrSlot, IrSlotBuilder};
 
-struct MockBus {
+pub struct MockBus {
     pub io: [u8; 0x20],       // 32 bytes io space
     pub ram: [u8; 0x40],      // 64 bytes ram space
     pub rom: [IrSlot; 0x400], // 1K word rom space

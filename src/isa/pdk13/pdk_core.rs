@@ -12,7 +12,7 @@ enum PdkCoreState {
     Skip,
 }
 
-struct PdkCore<B: Bus> {
+pub struct PdkCore<B: Bus> {
     acc: Byte,
     pc: RomAddr,
     state: PdkCoreState,
@@ -53,6 +53,18 @@ impl<B: Bus> PdkCore<B> {
         self.pc = 0;
         self.acc = 0;
         self.global_interrupts = false;
+    }
+
+    pub fn acc(&self) -> Byte {
+        self.acc
+    }
+
+    pub fn pc(&self) -> RomAddr {
+        self.pc
+    }
+
+    pub fn global_interrupts_enabled(&self) -> bool {
+        self.global_interrupts
     }
 
     #[rustfmt::skip]
@@ -273,16 +285,17 @@ impl<B: Bus> PdkCore<B> {
 
     fn push_af(&mut self) {
         let sp = self.bus.read_io(SP_IO_ADDR);
-        self.bus.write_ram(sp.wrapping_add(1), self.acc);
-        self.bus.write_ram(sp, self.bus.read_io(FLAGS_IO_ADDR));
+        self.bus.write_ram(sp, self.acc);
+        self.bus
+            .write_ram(sp.wrapping_add(1), self.bus.read_io(FLAGS_IO_ADDR));
         self.bus.write_io(SP_IO_ADDR, sp.wrapping_add(2));
     }
 
     fn pop_af(&mut self) {
         let sp = self.bus.read_io(SP_IO_ADDR);
-        self.acc = self.bus.read_ram(sp.wrapping_sub(1));
         self.bus
-            .write_io(FLAGS_IO_ADDR, self.bus.read_ram(sp.wrapping_sub(2)));
+            .write_io(FLAGS_IO_ADDR, self.bus.read_ram(sp.wrapping_sub(1)));
+        self.acc = self.bus.read_ram(sp.wrapping_sub(2));
         self.bus.write_io(SP_IO_ADDR, sp.wrapping_sub(2));
     }
 

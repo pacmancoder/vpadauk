@@ -18,7 +18,7 @@ const OVERFLOW_SUB_TABLE: [u8; 8] = [0, FLAG_OVERFLOW_MASK, 0, 0, 0, 0, FLAG_OVE
 pub type BinaryOperation = fn(Byte, Byte, Byte) -> (Byte, Byte);
 pub type UnaryOperation = fn(Byte, Byte) -> (Byte, Byte);
 
-fn make_flags_lookup_index(a: u8, b: u8, result: u8) -> usize {
+fn make_flags_lookup_r12(a: u8, b: u8, result: u8) -> usize {
     return (((a & 0x88) >> 3) | ((b & 0x88) >> 2) | ((result & 0x88) >> 1)) as usize;
 }
 
@@ -143,15 +143,15 @@ fn add_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte
         .wrapping_add(value as Word)
         .wrapping_add(carry as Word);
     let result8 = result as Byte;
-    let flags_lookup_index = make_flags_lookup_index(acc, value, result8);
+    let flags_lookup_r12 = make_flags_lookup_r12(acc, value, result8);
     if result > 0xFF {
         flags |= FLAG_CARRY_MASK;
     }
     if result8 == 0 {
         flags |= FLAG_ZERO_MASK;
     }
-    flags |= OVERFLOW_ADD_TABLE[flags_lookup_index];
-    flags |= AUX_CARRY_ADD_TABLE[flags_lookup_index];
+    flags |= OVERFLOW_ADD_TABLE[flags_lookup_r12 >> 4];
+    flags |= AUX_CARRY_ADD_TABLE[flags_lookup_r12 & 0x07];
     (result8, flags)
 }
 
@@ -159,16 +159,16 @@ fn sub_impl(acc: Byte, value: Byte, old_flags: Byte, carry: Byte) -> (Byte, Byte
     let mut flags = old_flags & !FLAGS_ARITH_MASK;
     let result = (acc as Word)
         .wrapping_sub(value as Word)
-        .wrapping_add(carry as Word);
+        .wrapping_sub(carry as Word);
     let result8 = result as Byte;
-    let flags_lookup_index = make_flags_lookup_index(acc, value, result8);
+    let flags_lookup_r12 = make_flags_lookup_r12(acc, value, result8);
     if result > 0xFF {
         flags |= FLAG_CARRY_MASK;
     }
     if result8 == 0 {
         flags |= FLAG_ZERO_MASK;
     }
-    flags |= OVERFLOW_SUB_TABLE[flags_lookup_index];
-    flags |= AUX_CARRY_SUB_TABLE[flags_lookup_index];
+    flags |= OVERFLOW_SUB_TABLE[flags_lookup_r12 >> 4];
+    flags |= AUX_CARRY_SUB_TABLE[flags_lookup_r12 & 0x07];
     (result8, flags)
 }
