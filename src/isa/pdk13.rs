@@ -4,12 +4,17 @@ mod limit;
 mod opcode_stamp;
 mod ops;
 mod pdk_core;
-mod regs;
+
+pub mod regs;
 
 #[cfg(test)]
 mod test;
 
 use failure::Fail;
+
+pub use bus::{Bus, BusExt};
+pub use ir::{IrOpcode, IrSlot, IrSlotBuilder};
+pub use pdk_core::PdkCore;
 
 #[derive(Debug, Fail)]
 pub enum Pdk13Error {

@@ -233,7 +233,7 @@ impl IrOpcode {
     }
 }
 
-pub fn generate_ir(instruction: Word) -> Pdk13Result<IrSlot> {
+pub(crate) fn generate_ir(instruction: Word) -> Pdk13Result<IrSlot> {
     if !limit::is_valid_opcode(instruction) {
         return Err(Pdk13Error::TooBigWord(instruction));
     }
