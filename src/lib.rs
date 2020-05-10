@@ -1,4 +1,4 @@
 #![no_std]
 
-mod isa;
-mod mcu;
+pub mod isa;
+pub mod mcu;

@@ -14,14 +14,16 @@
 //! x => lo operand part (used alone as mem/io address)
 //! x | y => used together as 10 bit address
 
-use super::{limit, opcode_stamp::OpcodeStamp, Pdk13Error, Pdk13Result, Word};
+use super::{opcode_stamp::OpcodeStamp, Pdk13Error, Pdk13Result, Word};
+
+const PDK13_WORD_MASK: Word = 0b0001111111111111;
 
 #[derive(Copy, Clone)]
 pub struct IrSlot(u32);
 
 impl IrSlot {
-    pub fn from_instruction(instruction: Word) -> Pdk13Result<Self> {
-        generate_ir(instruction)
+    pub fn from_instruction(instruction: Word) -> Self {
+        generate_ir(instruction & PDK13_WORD_MASK)
     }
 
     pub fn ir_opcode(&self) -> IrOpcode {
@@ -233,11 +235,7 @@ impl IrOpcode {
     }
 }
 
-pub(crate) fn generate_ir(instruction: Word) -> Pdk13Result<IrSlot> {
-    if !limit::is_valid_opcode(instruction) {
-        return Err(Pdk13Error::TooBigWord(instruction));
-    }
-
+pub(crate) fn generate_ir(instruction: Word) -> IrSlot {
     const MISC_GROUP_MASK: u16 = 0b111_1111111000000;
     const MISC_GROUP_STAMP: u16 = 0b000_0000000000000;
 
@@ -339,6 +337,5 @@ pub(crate) fn generate_ir(instruction: Word) -> Pdk13Result<IrSlot> {
         opcode_stamp = OpcodeStamp::Nop;
     }
 
-    ir_builder.ir_opcode(opcode_stamp.to_ir_opcode());
-    Ok(ir_builder.build())
+    ir_builder.ir_opcode(opcode_stamp.to_ir_opcode()).build()
 }

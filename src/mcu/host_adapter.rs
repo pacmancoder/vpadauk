@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Pin(pub(crate) usize);
 
 impl Pin {
@@ -15,7 +15,7 @@ pub struct AnalogSignal(u16);
 
 impl AnalogSignal {
     #[cfg(float_arithmetic)]
-    const fn from_float(value: f32) -> Self {
+    pub const fn from_float(value: f32) -> Self {
         if value <= 0f32 {
             Self(0)
         } else if value >= 1f32 {
@@ -26,15 +26,15 @@ impl AnalogSignal {
     }
 
     #[cfg(float_arithmetic)]
-    const fn as_float(self) -> f32 {
+    pub const fn as_float(self) -> f32 {
         (self.0 as f32) / (u16::MAX as f32)
     }
 
-    const fn from_u16(value: u16) -> Self {
+    pub const fn from_u16(value: u16) -> Self {
         Self(value)
     }
 
-    const fn as_u16(self) -> u16 {
+    pub const fn as_u16(self) -> u16 {
         self.0
     }
 }

@@ -1,6 +1,5 @@
 mod bus;
-mod ir;
-mod limit;
+pub mod ir;
 mod opcode_stamp;
 mod ops;
 mod pdk_core;
@@ -18,13 +17,6 @@ pub use pdk_core::PdkCore;
 
 #[derive(Debug, Fail)]
 pub enum Pdk13Error {
-    #[fail(
-        display = "Provided work is too big for pdk13 word; Max: 8191, actual: {}",
-        _0
-    )]
-    TooBigWord(Word),
-    #[fail(display = "Unknown instruction: {:#b}", _0)]
-    UnknownInstruction(Word),
     #[fail(display = "Too big address: {}, address space size: {}", _0, _1)]
     TooBigAddress(usize, usize),
 }

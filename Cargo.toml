@@ -12,3 +12,7 @@ log = "0.4.8"
 default = ["float_arithmetic"]
 
 float_arithmetic = []
+
+[[example]]
+name = "blink"
+crate-type = ["bin"]

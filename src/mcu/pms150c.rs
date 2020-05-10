@@ -2,7 +2,7 @@ use core::cell::Cell;
 
 use crate::{
     isa::pdk13::*,
-    mcu::host_adapter::HostAdapter,
+    mcu::host_adapter::{ HostAdapter, Pin },
 };
 
 const IO_SPACE_SIZE: usize = 0x20;   // 32 bytes;
@@ -16,7 +16,7 @@ const ROM_ADDRESS_MASK: RomAddr = ROM_SPACE_SIZE as RomAddr - 1;
 const IHRC_FREQUENCY: u32 = 16_000_000; // 16 MHz
 const ILRC_FREQUENCY: u32 = 62_000;     // 62 KHz
 
-mod pins {
+pub mod pins {
     use crate::mcu::host_adapter::Pin;
 
     pub const PA0: Pin = Pin(0b00000001);
@@ -34,7 +34,7 @@ pub struct Pms150c {
     state: State,
 }
 
-trait Emulator {
+pub trait Emulator {
     /// Returns current frequency to emulate. Please check before each stepping process
     /// to perform correct step count
     fn get_frequency(&self) -> u32;
@@ -111,7 +111,7 @@ impl Emulator for Pms150c {
         if address >= ROM_SPACE_SIZE {
             return Err(Pdk13Error::TooBigAddress(address, ROM_SPACE_SIZE));
         }
-        self.state.rom[address] = IrSlot::from_instruction(value)?;
+        self.state.rom[address] = IrSlot::from_instruction(value);
         Ok(())
     }
 }
@@ -167,63 +167,85 @@ impl<'a> HostBridge<'a> {
     fn set_watchdog_enabled(&mut self, _enabled: bool) {}
     fn set_pa5_reset_enabled(&mut self, _enabled: bool) {}
 
-    fn on_change_pa(&mut self, pa: Byte) {
-        self.host.write_pin_digital(pins::PA7, (pa & pins::PA7.port_bit_mask()) != 0);
-        self.host.write_pin_digital(pins::PA6, (pa & pins::PA6.port_bit_mask()) != 0);
-        self.host.write_pin_digital(pins::PA5, (pa & pins::PA5.port_bit_mask()) != 0);
-        self.host.write_pin_digital(pins::PA4, (pa & pins::PA4.port_bit_mask()) != 0);
-        self.host.write_pin_digital(pins::PA3, (pa & pins::PA3.port_bit_mask()) != 0);
-        self.host.write_pin_digital(pins::PA0, (pa & pins::PA0.port_bit_mask()) != 0);
+    fn on_change_pin(&mut self, pa: Byte, pin: Pin) {
+        let toggle = (self.state.pa.get() ^ pa) & pin.port_bit_mask() != 0;
+        if toggle {
+            self.host.write_pin_digital(pin, pa & pin.port_bit_mask() != 0)
+        }
+    }
 
+    fn on_change_pa(&mut self, pa: Byte) {
+        self.on_change_pin(pa, pins::PA7);
+        self.on_change_pin(pa, pins::PA6);
+        self.on_change_pin(pa, pins::PA5);
+        self.on_change_pin(pa, pins::PA4);
+        self.on_change_pin(pa, pins::PA3);
+        self.on_change_pin(pa, pins::PA0);
         self.state.pa.set(pa);
     }
 
-    fn on_change_pac(&mut self, pac: Byte) {
-        self.host.set_pin_output_enabled(pins::PA7, (pac & pins::PA7.port_bit_mask()) != 0);
-        self.host.set_pin_output_enabled(pins::PA6, (pac & pins::PA6.port_bit_mask()) != 0);
-        self.host.set_pin_output_enabled(pins::PA5, (pac & pins::PA5.port_bit_mask()) != 0);
-        self.host.set_pin_output_enabled(pins::PA4, (pac & pins::PA4.port_bit_mask()) != 0);
-        self.host.set_pin_output_enabled(pins::PA3, (pac & pins::PA3.port_bit_mask()) != 0);
-        self.host.set_pin_output_enabled(pins::PA0, (pac & pins::PA0.port_bit_mask()) != 0);
+    fn on_change_pin_control(&mut self, pac: Byte, pin: Pin) {
+        let toggle = (self.state.pac ^ pac) & pin.port_bit_mask() != 0;
+        if toggle {
+            self.host.set_pin_output_enabled(pin, pac & pin.port_bit_mask() != 0);
+        }
+    }
 
+    fn on_change_pac(&mut self, pac: Byte) {
+        self.on_change_pin_control(pac, pins::PA7);
+        self.on_change_pin_control(pac, pins::PA6);
+        self.on_change_pin_control(pac, pins::PA5);
+        self.on_change_pin_control(pac, pins::PA4);
+        self.on_change_pin_control(pac, pins::PA3);
+        self.on_change_pin_control(pac, pins::PA0);
         self.state.pac = pac;
     }
 
-    fn on_change_paph(&mut self, paph: Byte) {
-        self.host.set_pin_pull_up_enabled(pins::PA7, (paph & pins::PA7.port_bit_mask()) != 0);
-        self.host.set_pin_pull_up_enabled(pins::PA6, (paph & pins::PA6.port_bit_mask()) != 0);
-        self.host.set_pin_pull_up_enabled(pins::PA5, (paph & pins::PA5.port_bit_mask()) != 0);
-        self.host.set_pin_pull_up_enabled(pins::PA4, (paph & pins::PA4.port_bit_mask()) != 0);
-        self.host.set_pin_pull_up_enabled(pins::PA3, (paph & pins::PA3.port_bit_mask()) != 0);
-        self.host.set_pin_pull_up_enabled(pins::PA0, (paph & pins::PA0.port_bit_mask()) != 0);
+    fn on_change_pin_pull_up(&mut self, paph: Byte, pin: Pin) {
+        let toggle = (self.state.paph ^ paph) & pin.port_bit_mask() != 0;
+        if toggle {
+            self.host.set_pin_pull_up_enabled(pin, paph & pin.port_bit_mask() != 0);
+        }
+    }
 
+    fn on_change_paph(&mut self, paph: Byte) {
+        self.on_change_pin_pull_up(paph, pins::PA7);
+        self.on_change_pin_pull_up(paph, pins::PA6);
+        self.on_change_pin_pull_up(paph, pins::PA5);
+        self.on_change_pin_pull_up(paph, pins::PA4);
+        self.on_change_pin_pull_up(paph, pins::PA3);
+        self.on_change_pin_pull_up(paph, pins::PA0);
         self.state.paph = paph;
     }
 
     fn on_read_pa(&self) {
         // clear all input pins
-        let mut new_pa = self.state.pa.get() & self.state.pac;
+        let output_pins = self.state.pa.get() & self.state.pac;
+        let mut input_pins:  u8 = 0x00;
+
         // Update pins state from host
         if self.host.read_pin_digital(pins::PA7) {
-            new_pa |= pins::PA7.port_bit_mask();
+            input_pins |= pins::PA7.port_bit_mask();
         };
         if self.host.read_pin_digital(pins::PA6) {
-            new_pa |= pins::PA6.port_bit_mask();
+            input_pins |= pins::PA6.port_bit_mask();
         };
         if self.host.read_pin_digital(pins::PA5) {
-            new_pa |= pins::PA5.port_bit_mask();
+            input_pins |= pins::PA5.port_bit_mask();
         };
         if self.host.read_pin_digital(pins::PA4) {
-            new_pa |= pins::PA4.port_bit_mask();
+            input_pins |= pins::PA4.port_bit_mask();
         };
         if self.host.read_pin_digital(pins::PA3) {
-            new_pa |= pins::PA3.port_bit_mask();
+            input_pins |= pins::PA3.port_bit_mask();
         };
         if self.host.read_pin_digital(pins::PA0) {
-            new_pa |= pins::PA0.port_bit_mask();
+            input_pins |= pins::PA0.port_bit_mask();
         };
+        // clear non-input pins
+        input_pins &= !self.state.pac;
 
-        self.state.pa.set(new_pa);
+        self.state.pa.set(output_pins |  input_pins);
     }
 }
 
