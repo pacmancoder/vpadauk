@@ -1,6 +1,6 @@
 use super::{
     ir::IrSlot,
-    regs::{FLAGS_IO_ADDR, SP_IO_ADDR},
+    regs::{IO_ADDR_FLAGS, IO_ADDR_SP},
     Byte, IoAddr, RamAddr, RomAddr, Word,
 };
 use crate::isa::pdk13::regs::{
@@ -63,19 +63,19 @@ where
     }
 
     fn read_sp(&self) -> RamAddr {
-        self.read_io(SP_IO_ADDR)
+        self.read_io(IO_ADDR_SP)
     }
 
     fn write_sp(&mut self, addr: u8) {
-        self.write_io(SP_IO_ADDR, addr)
+        self.write_io(IO_ADDR_SP, addr)
     }
 
     fn read_flags(&self) -> Byte {
-        self.read_io(FLAGS_IO_ADDR)
+        self.read_io(IO_ADDR_FLAGS)
     }
 
     fn write_flags(&mut self, flags: u8) {
-        self.write_io(FLAGS_IO_ADDR, flags)
+        self.write_io(IO_ADDR_FLAGS, flags)
     }
 
     fn is_zero_flag(&self) -> bool {

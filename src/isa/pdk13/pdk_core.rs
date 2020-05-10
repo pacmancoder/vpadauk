@@ -63,7 +63,7 @@ impl PdkCore {
 
     #[rustfmt::skip]
     fn execute(&mut self, bus: &mut impl Bus) -> PdkCoreState {
-        self.prev_flags = bus.read_io(FLAGS_IO_ADDR);
+        self.prev_flags = bus.read_io(IO_ADDR_FLAGS);
         let ir = bus.read_rom(self.pc);
         self.next_state = PdkCoreState::Execute;
         self.pc_increment = 1;
@@ -163,7 +163,7 @@ impl PdkCore {
     ) {
         let (r, f) = operation(self.acc, operand, self.prev_flags);
         self.acc = r;
-        bus.write_io(FLAGS_IO_ADDR, f);
+        bus.write_io(IO_ADDR_FLAGS, f);
     }
 
     fn alu_mem_binary(
@@ -175,26 +175,26 @@ impl PdkCore {
     ) {
         let (r, f) = operation(bus.read_ram(addr), operand, self.prev_flags);
         bus.write_ram(addr, r);
-        bus.write_io(FLAGS_IO_ADDR, f);
+        bus.write_io(IO_ADDR_FLAGS, f);
     }
 
     fn alu_acc_unary(&mut self, operation: ops::UnaryOperation, bus: &mut impl Bus) {
         let (r, f) = operation(self.acc, self.prev_flags);
         self.acc = r;
-        bus.write_io(FLAGS_IO_ADDR, f);
+        bus.write_io(IO_ADDR_FLAGS, f);
     }
 
     fn alu_mem_unary(&mut self, operation: ops::UnaryOperation, addr: Byte, bus: &mut impl Bus) {
         let (r, f) = operation(bus.read_ram(addr), self.prev_flags);
         bus.write_ram(addr, r);
-        bus.write_io(FLAGS_IO_ADDR, f);
+        bus.write_io(IO_ADDR_FLAGS, f);
     }
 
     fn ret(&mut self, bus: &mut impl Bus) {
-        let sp = bus.read_io(SP_IO_ADDR);
+        let sp = bus.read_io(IO_ADDR_SP);
         let pc = ((bus.read_ram(sp.wrapping_sub(1)) as u16) << 8)
             | (bus.read_ram(sp.wrapping_sub(2)) as u16);
-        bus.write_io(SP_IO_ADDR, sp.wrapping_sub(2));
+        bus.write_io(IO_ADDR_SP, sp.wrapping_sub(2));
         self.pc = pc;
         self.pc_increment = 0;
         self.next_state = PdkCoreState::Skip;
@@ -217,10 +217,10 @@ impl PdkCore {
     }
 
     fn call(&mut self, addr: Word, bus: &mut impl Bus) {
-        let sp = bus.read_io(SP_IO_ADDR);
+        let sp = bus.read_io(IO_ADDR_SP);
         bus.write_ram_word(sp, self.pc.wrapping_add(1));
         self.pc = addr;
-        bus.write_io(SP_IO_ADDR, sp.wrapping_add(2));
+        bus.write_io(IO_ADDR_SP, sp.wrapping_add(2));
         self.pc_increment = 0;
         self.next_state = PdkCoreState::Skip;
     }
@@ -286,17 +286,17 @@ impl PdkCore {
     }
 
     fn push_af(&mut self, bus: &mut impl Bus) {
-        let sp = bus.read_io(SP_IO_ADDR);
+        let sp = bus.read_io(IO_ADDR_SP);
         bus.write_ram(sp, self.acc);
-        bus.write_ram(sp.wrapping_add(1), bus.read_io(FLAGS_IO_ADDR));
-        bus.write_io(SP_IO_ADDR, sp.wrapping_add(2));
+        bus.write_ram(sp.wrapping_add(1), bus.read_io(IO_ADDR_FLAGS));
+        bus.write_io(IO_ADDR_SP, sp.wrapping_add(2));
     }
 
     fn pop_af(&mut self, bus: &mut impl Bus) {
-        let sp = bus.read_io(SP_IO_ADDR);
-        bus.write_io(FLAGS_IO_ADDR, bus.read_ram(sp.wrapping_sub(1)));
+        let sp = bus.read_io(IO_ADDR_SP);
+        bus.write_io(IO_ADDR_FLAGS, bus.read_ram(sp.wrapping_sub(1)));
         self.acc = bus.read_ram(sp.wrapping_sub(2));
-        bus.write_io(SP_IO_ADDR, sp.wrapping_sub(2));
+        bus.write_io(IO_ADDR_SP, sp.wrapping_sub(2));
     }
 
     fn software_reset(&mut self, bus: &mut impl Bus) {
@@ -310,13 +310,13 @@ impl PdkCore {
     }
 
     fn load_rom_word_indirect_sp_hi(&mut self, bus: &mut impl Bus) {
-        let sp = bus.read_io(SP_IO_ADDR);
+        let sp = bus.read_io(IO_ADDR_SP);
         let addr = bus.read_ram(sp) as u16 | ((bus.read_ram(sp.wrapping_add(1)) as u16) << 8);
         self.acc = (bus.read_rom(addr).original_word() >> 8) as u8
     }
 
     fn load_rom_word_indirect_sp_lo(&mut self, bus: &mut impl Bus) {
-        let sp = bus.read_io(SP_IO_ADDR);
+        let sp = bus.read_io(IO_ADDR_SP);
         let addr = bus.read_ram(sp) as u16 | ((bus.read_ram(sp.wrapping_add(1)) as u16) << 8);
         self.acc = bus.read_rom(addr).original_word() as u8
     }
@@ -328,7 +328,7 @@ impl PdkCore {
             self.next_state = PdkCoreState::Skip;
         }
         self.acc = acc;
-        bus.write_io(FLAGS_IO_ADDR, flags);
+        bus.write_io(IO_ADDR_FLAGS, flags);
     }
 
     fn dec_and_skip_next_if_zero_acc(&mut self, bus: &mut impl Bus) {
@@ -338,7 +338,7 @@ impl PdkCore {
             self.next_state = PdkCoreState::Skip;
         }
         self.acc = acc;
-        bus.write_io(FLAGS_IO_ADDR, flags);
+        bus.write_io(IO_ADDR_FLAGS, flags);
     }
 
     fn inc_and_skip_next_if_zero_ram(&mut self, addr: Byte, bus: &mut impl Bus) {
@@ -348,7 +348,7 @@ impl PdkCore {
             self.next_state = PdkCoreState::Skip;
         }
         bus.write_ram(addr, acc);
-        bus.write_io(FLAGS_IO_ADDR, flags);
+        bus.write_io(IO_ADDR_FLAGS, flags);
     }
 
     fn dec_and_skip_next_if_zero_ram(&mut self, addr: Byte, bus: &mut impl Bus) {
@@ -358,7 +358,7 @@ impl PdkCore {
             self.next_state = PdkCoreState::Skip;
         }
         bus.write_ram(addr, acc);
-        bus.write_io(FLAGS_IO_ADDR, flags);
+        bus.write_io(IO_ADDR_FLAGS, flags);
     }
 
     fn xor_io_with_acc(&mut self, addr: Byte, bus: &mut impl Bus) {
@@ -377,7 +377,7 @@ impl PdkCore {
 
     fn skip_next_if_equal(&mut self, value: Byte, bus: &mut impl Bus) {
         let (_r, f) = ops::sub(self.acc, value, self.prev_flags);
-        bus.write_io(FLAGS_IO_ADDR, f);
+        bus.write_io(IO_ADDR_FLAGS, f);
         if f & FLAG_ZERO_MASK != 0 {
             self.pc_increment = 2;
             self.next_state = PdkCoreState::Skip;

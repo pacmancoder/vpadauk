@@ -25,6 +25,8 @@ pub enum Pdk13Error {
     TooBigWord(Word),
     #[fail(display = "Unknown instruction: {:#b}", _0)]
     UnknownInstruction(Word),
+    #[fail(display = "Too big address: {}, address space size: {}", _0, _1)]
+    TooBigAddress(usize, usize),
 }
 
 pub type Pdk13Result<T> = Result<T, Pdk13Error>;
