@@ -1,3 +1,6 @@
+[workspace]
+members = [ "vpadauk-plotter", "vpadauk-plotter-cli" ]
+
 [package]
 name = "vpadauk"
 version = "0.1.0"

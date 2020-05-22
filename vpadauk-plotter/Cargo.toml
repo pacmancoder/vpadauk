@@ -1,0 +1,9 @@
+[package]
+name = "vpadauk-plotter"
+version = "0.1.0"
+authors = ["Vladislav Nikonov <pacmancoder@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+vpadauk = { path = ".." }
+plotters = "0.2.14"
